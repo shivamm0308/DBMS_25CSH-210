@@ -1,0 +1,71 @@
+-- DBMS Experiment 8: Queries Only
+USE BankingDB;
+
+-- Query 1: Successful transfer using COMMIT
+START TRANSACTION;
+UPDATE Bank_Account SET Balance = Balance - 1000 WHERE Account_ID = 101;
+UPDATE Bank_Account SET Balance = Balance + 1000 WHERE Account_ID = 102;
+INSERT INTO Bank_Transactions (From_Account, To_Account, Amount)
+VALUES (101, 102, 1000);
+COMMIT;
+
+SELECT * FROM Bank_Account;
+SELECT * FROM Bank_Transactions;
+
+-- Query 2: Rollback after a simulated failure
+START TRANSACTION;
+UPDATE Bank_Account SET Balance = Balance - 500 WHERE Account_ID = 101;
+UPDATE Bank_Account SET Balance = Balance + 500 WHERE Account_ID = 103;
+ROLLBACK;
+SELECT * FROM Bank_Account;
+
+-- Query 3: Savepoint and partial rollback
+START TRANSACTION;
+UPDATE Bank_Account SET Balance = Balance - 200 WHERE Account_ID = 102;
+SAVEPOINT after_debit;
+UPDATE Bank_Account SET Balance = Balance + 200 WHERE Account_ID = 103;
+ROLLBACK TO SAVEPOINT after_debit;
+-- Roll back the remaining debit as well, as in the reference experiment
+ROLLBACK;
+SELECT * FROM Bank_Account;
+
+-- Query 4: Set and inspect transaction isolation levels
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT @@transaction_isolation;
+
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SELECT @@transaction_isolation;
+
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT @@transaction_isolation;
+
+-- Query 5: Two-session test for NON-REPEATABLE READ
+-- Open two MySQL connections. Run Session A's first SELECT, then Session B,
+-- then Session A's second SELECT.
+-- SESSION A:
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+START TRANSACTION;
+SELECT Balance FROM Bank_Account WHERE Account_ID = 101;
+-- Pause and run Session B before running this SELECT again:
+SELECT Balance FROM Bank_Account WHERE Account_ID = 101;
+COMMIT;
+
+-- SESSION B (run between Session A's two SELECT statements):
+START TRANSACTION;
+UPDATE Bank_Account SET Balance = Balance + 300 WHERE Account_ID = 101;
+COMMIT;
+
+-- Query 6: Two-session test for REPEATABLE READ
+-- Run Session A's first SELECT, then Session B, then Session A's second SELECT.
+-- SESSION A:
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+SELECT Balance FROM Bank_Account WHERE Account_ID = 101;
+-- Run Session B, then repeat this SELECT:
+SELECT Balance FROM Bank_Account WHERE Account_ID = 101;
+COMMIT;
+
+-- SESSION B:
+START TRANSACTION;
+UPDATE Bank_Account SET Balance = Balance + 300 WHERE Account_ID = 101;
+COMMIT;
