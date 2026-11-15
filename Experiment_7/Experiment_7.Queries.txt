@@ -1,0 +1,155 @@
+-- DBMS Experiment 7: Queries Only
+USE DBMS_Experiments;
+
+-- Query 1: View denormalized Sales data
+SELECT * FROM Sales_UNF ORDER BY Order_ID, Product_ID;
+
+-- Query 2: 1NF view (one product per order row)
+SELECT Order_ID, Product_ID, Quantity
+FROM Sales_UNF
+ORDER BY Order_ID, Product_ID;
+
+-- Query 3: Create 2NF tables
+DROP TABLE IF EXISTS Sales_OrderLine;
+DROP TABLE IF EXISTS Sales_Order;
+DROP TABLE IF EXISTS Sales_Product;
+
+CREATE TABLE Sales_Order (
+    Order_ID INT PRIMARY KEY,
+    Order_Date DATE,
+    Customer_ID INT,
+    Customer_Name VARCHAR(60),
+    Customer_City VARCHAR(50),
+    Salesperson_ID INT,
+    Salesperson_Name VARCHAR(60)
+);
+
+CREATE TABLE Sales_Product (
+    Product_ID INT PRIMARY KEY,
+    Product_Name VARCHAR(60),
+    Unit_Price DECIMAL(10,2)
+);
+
+CREATE TABLE Sales_OrderLine (
+    Order_ID INT,
+    Product_ID INT,
+    Quantity INT,
+    PRIMARY KEY (Order_ID, Product_ID),
+    FOREIGN KEY (Order_ID) REFERENCES Sales_Order(Order_ID),
+    FOREIGN KEY (Product_ID) REFERENCES Sales_Product(Product_ID)
+);
+
+INSERT INTO Sales_Order
+SELECT DISTINCT Order_ID, Order_Date, Customer_ID, Customer_Name,
+       Customer_City, Salesperson_ID, Salesperson_Name
+FROM Sales_UNF;
+
+INSERT INTO Sales_Product
+SELECT DISTINCT Product_ID, Product_Name, Unit_Price
+FROM Sales_UNF;
+
+INSERT INTO Sales_OrderLine
+SELECT Order_ID, Product_ID, Quantity FROM Sales_UNF;
+
+SELECT * FROM Sales_Order;
+SELECT * FROM Sales_Product;
+SELECT * FROM Sales_OrderLine;
+
+-- Query 4: Normalize to 3NF (remove transitive dependencies)
+DROP TABLE IF EXISTS Sales_OrderLine;
+DROP TABLE IF EXISTS Sales_Order;
+DROP TABLE IF EXISTS Sales_Customer;
+DROP TABLE IF EXISTS Sales_Salesperson;
+
+CREATE TABLE Sales_Customer (
+    Customer_ID INT PRIMARY KEY,
+    Customer_Name VARCHAR(60),
+    Customer_City VARCHAR(50)
+);
+
+CREATE TABLE Sales_Salesperson (
+    Salesperson_ID INT PRIMARY KEY,
+    Salesperson_Name VARCHAR(60)
+);
+
+CREATE TABLE Sales_Order (
+    Order_ID INT PRIMARY KEY,
+    Order_Date DATE,
+    Customer_ID INT,
+    Salesperson_ID INT,
+    FOREIGN KEY (Customer_ID) REFERENCES Sales_Customer(Customer_ID),
+    FOREIGN KEY (Salesperson_ID) REFERENCES Sales_Salesperson(Salesperson_ID)
+);
+
+CREATE TABLE Sales_OrderLine (
+    Order_ID INT,
+    Product_ID INT,
+    Quantity INT,
+    PRIMARY KEY (Order_ID, Product_ID),
+    FOREIGN KEY (Order_ID) REFERENCES Sales_Order(Order_ID),
+    FOREIGN KEY (Product_ID) REFERENCES Sales_Product(Product_ID)
+);
+
+INSERT INTO Sales_Customer
+SELECT DISTINCT Customer_ID, Customer_Name, Customer_City FROM Sales_UNF;
+
+INSERT INTO Sales_Salesperson
+SELECT DISTINCT Salesperson_ID, Salesperson_Name FROM Sales_UNF;
+
+INSERT INTO Sales_Order
+SELECT DISTINCT Order_ID, Order_Date, Customer_ID, Salesperson_ID FROM Sales_UNF;
+
+SELECT * FROM Sales_Customer;
+SELECT * FROM Sales_Salesperson;
+SELECT * FROM Sales_Order;
+
+-- Query 5: BCNF check (each determinant is a key in its relation)
+SHOW KEYS FROM Sales_Customer;
+SHOW KEYS FROM Sales_Salesperson;
+SHOW KEYS FROM Sales_Product;
+SHOW KEYS FROM Sales_Order;
+SHOW KEYS FROM Sales_OrderLine;
+
+-- Reconstruct the sales details using joins
+SELECT o.Order_ID, o.Order_Date, c.Customer_Name,
+       s.Salesperson_Name, p.Product_Name, p.Unit_Price, l.Quantity
+FROM Sales_Order o
+JOIN Sales_Customer c ON o.Customer_ID = c.Customer_ID
+JOIN Sales_Salesperson s ON o.Salesperson_ID = s.Salesperson_ID
+JOIN Sales_OrderLine l ON o.Order_ID = l.Order_ID
+JOIN Sales_Product p ON l.Product_ID = p.Product_ID
+ORDER BY o.Order_ID, p.Product_ID;
+
+-- Query 6: Lossless join verification (both queries should return no rows)
+SELECT u.Order_ID, u.Product_ID, u.Quantity
+FROM Sales_UNF u
+LEFT JOIN Sales_OrderLine l
+  ON u.Order_ID = l.Order_ID AND u.Product_ID = l.Product_ID
+WHERE l.Order_ID IS NULL;
+
+SELECT l.Order_ID, l.Product_ID, l.Quantity
+FROM Sales_OrderLine l
+LEFT JOIN Sales_UNF u
+  ON u.Order_ID = l.Order_ID AND u.Product_ID = l.Product_ID
+WHERE u.Order_ID IS NULL;
+
+-- Query 7: Dependency preservation checks (each query should return no rows)
+SELECT Customer_ID
+FROM Sales_Customer
+GROUP BY Customer_ID
+HAVING COUNT(*) > 1;
+
+SELECT Product_ID
+FROM Sales_Product
+GROUP BY Product_ID
+HAVING COUNT(*) > 1;
+
+SELECT Order_ID
+FROM Sales_Order
+GROUP BY Order_ID
+HAVING COUNT(*) > 1;
+
+SELECT Salesperson_ID
+FROM Sales_Salesperson
+GROUP BY Salesperson_ID
+HAVING COUNT(*) > 1;
