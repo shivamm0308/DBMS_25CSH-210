@@ -1,1 +1,29 @@
+-- DBMS Experiment 8
+-- Aim: Demonstrate transaction control, savepoints, rollback and isolation levels.
 
+CREATE DATABASE IF NOT EXISTS BankingDB;
+USE BankingDB;
+
+DROP TABLE IF EXISTS Bank_Transactions;
+DROP TABLE IF EXISTS Bank_Account;
+
+CREATE TABLE Bank_Account (
+    Account_ID INT PRIMARY KEY,
+    Account_Name VARCHAR(50),
+    Balance DECIMAL(12,2) NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE Bank_Transactions (
+    Transaction_ID INT AUTO_INCREMENT PRIMARY KEY,
+    From_Account INT,
+    To_Account INT,
+    Amount DECIMAL(12,2),
+    Transaction_Time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+INSERT INTO Bank_Account VALUES
+(101,'Aarav',10000.00),
+(102,'Neha',7000.00),
+(103,'Kabir',5000.00);
+
+SELECT * FROM Bank_Account;
