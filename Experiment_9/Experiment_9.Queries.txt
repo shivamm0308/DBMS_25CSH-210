@@ -1,0 +1,44 @@
+-- DBMS Experiment 9: Queries Only
+USE RailwayDB;
+
+-- Query 1: Baseline query and execution plan (before indexing)
+EXPLAIN
+SELECT Booking_ID, Passenger_Name, Journey_Date, Booking_Status
+FROM Railway_Booking
+WHERE Train_No = 12005 AND Journey_Date = '2026-02-15';
+
+SELECT Booking_ID, Passenger_Name, Journey_Date, Booking_Status
+FROM Railway_Booking
+WHERE Train_No = 12005 AND Journey_Date = '2026-02-15';
+
+-- Query 2: Create single-column index
+CREATE INDEX idx_railway_train ON Railway_Booking(Train_No);
+EXPLAIN
+SELECT Booking_ID, Passenger_Name, Journey_Date, Booking_Status
+FROM Railway_Booking
+WHERE Train_No = 12005;
+
+-- Query 3: Create composite index
+CREATE INDEX idx_train_date ON Railway_Booking(Train_No, Journey_Date);
+EXPLAIN
+SELECT Booking_ID, Passenger_Name, Journey_Date, Booking_Status
+FROM Railway_Booking
+WHERE Train_No = 12005 AND Journey_Date = '2026-02-15';
+
+SELECT Booking_ID, Passenger_Name, Journey_Date, Booking_Status
+FROM Railway_Booking
+WHERE Train_No = 12005 AND Journey_Date = '2026-02-15';
+
+-- Query 4: Booking status index
+CREATE INDEX idx_booking_status ON Railway_Booking(Booking_Status);
+EXPLAIN
+SELECT Booking_ID, Passenger_Name, Train_No
+FROM Railway_Booking
+WHERE Booking_Status = 'Confirmed';
+
+-- Query 5: Compare indexes and execution plan
+SHOW INDEX FROM Railway_Booking;
+EXPLAIN ANALYZE
+SELECT Booking_ID, Passenger_Name
+FROM Railway_Booking
+WHERE Train_No = 12005 AND Journey_Date = '2026-02-15';
