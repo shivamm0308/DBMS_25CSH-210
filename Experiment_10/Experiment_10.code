@@ -1,1 +1,43 @@
 
+-- DBMS Experiment 9
+-- Aim: Create 5,000 railway booking records and benchmark single/composite indexes.
+
+CREATE DATABASE IF NOT EXISTS RailwayDB;
+USE RailwayDB;
+
+DROP TABLE IF EXISTS Railway_Booking;
+CREATE TABLE Railway_Booking (
+    Booking_ID INT PRIMARY KEY,
+    Passenger_Name VARCHAR(60),
+    Train_No INT,
+    Source_Station VARCHAR(40),
+    Destination_Station VARCHAR(40),
+    Journey_Date DATE,
+    Coach_Type VARCHAR(20),
+    Booking_Status VARCHAR(20),
+    Fare DECIMAL(8,2)
+) ENGINE=InnoDB;
+
+-- Generate 5,000 rows using a recursive CTE (MySQL 8.0+)
+SET SESSION cte_max_recursion_depth = 6000;
+
+INSERT INTO Railway_Booking
+(Booking_ID, Passenger_Name, Train_No, Source_Station,
+ Destination_Station, Journey_Date, Coach_Type, Booking_Status, Fare)
+WITH RECURSIVE seq AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1 FROM seq WHERE n < 5000
+)
+SELECT n,
+       CONCAT('Passenger_', n),
+       12000 + MOD(n, 25),
+       ELT(MOD(n,5)+1,'Delhi','Mumbai','Chandigarh','Lucknow','Jaipur'),
+       ELT(MOD(n+2,5)+1,'Delhi','Mumbai','Chandigarh','Lucknow','Jaipur'),
+       DATE_ADD('2026-01-01', INTERVAL MOD(n,180) DAY),
+       ELT(MOD(n,3)+1,'Sleeper','3AC','2AC'),
+       ELT(MOD(n,4)+1,'Confirmed','Waiting','Cancelled','RAC'),
+       300 + MOD(n*17, 2500)
+FROM seq;
+
+SELECT COUNT(*) AS Total_Bookings FROM Railway_Booking;
