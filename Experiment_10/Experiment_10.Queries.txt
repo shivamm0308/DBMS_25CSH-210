@@ -1,0 +1,105 @@
+-- DBMS Experiment 10: Queries Only
+USE QueryOptimizationDB;
+
+-- Query 1: Slow query 1 - filter without index
+EXPLAIN
+SELECT * FROM Sales_Analytics
+WHERE Region = 'North';
+
+SELECT * FROM Sales_Analytics
+WHERE Region = 'North';
+
+-- Query 2: Slow query 2 - multiple filters
+EXPLAIN
+SELECT Record_ID, Customer_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Region = 'West'
+  AND Order_Status = 'Delivered'
+  AND Order_Date >= '2025-06-01';
+
+-- Query 3: Slow query 3 - function on a filter column
+EXPLAIN
+SELECT Record_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE YEAR(Order_Date) = 2025;
+
+-- Query 4: Slow query 4 - aggregation
+EXPLAIN
+SELECT Region, Order_Status, SUM(Quantity * Unit_Price) AS Total_Sales
+FROM Sales_Analytics
+GROUP BY Region, Order_Status;
+
+-- Query 5: Slow query 5 - sorting
+EXPLAIN
+SELECT Record_ID, Customer_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Product_Category = 'Phone'
+ORDER BY Order_Date DESC
+LIMIT 100;
+
+-- Query 6: Optimize using indexes
+CREATE INDEX idx_region ON Sales_Analytics(Region);
+CREATE INDEX idx_region_status_date
+ON Sales_Analytics(Region, Order_Status, Order_Date);
+CREATE INDEX idx_order_date ON Sales_Analytics(Order_Date);
+CREATE INDEX idx_category_date
+ON Sales_Analytics(Product_Category, Order_Date);
+
+SHOW INDEX FROM Sales_Analytics;
+
+-- Query 7: Optimized query 1
+EXPLAIN
+SELECT Record_ID, Customer_ID, Order_Date, Order_Status
+FROM Sales_Analytics
+WHERE Region = 'North';
+
+-- Query 8: Optimized query 2
+EXPLAIN
+SELECT Record_ID, Customer_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Region = 'West'
+  AND Order_Status = 'Delivered'
+  AND Order_Date >= '2025-06-01';
+
+-- Query 9: Optimized query 3 - rewrite date filter
+EXPLAIN
+SELECT Record_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Order_Date >= '2025-01-01'
+  AND Order_Date < '2026-01-01';
+
+-- Query 10: Optimized query 4 - aggregation
+EXPLAIN
+SELECT Region, Order_Status,
+       SUM(Quantity * Unit_Price) AS Total_Sales
+FROM Sales_Analytics
+WHERE Order_Date >= '2025-01-01'
+  AND Order_Date < '2026-01-01'
+GROUP BY Region, Order_Status;
+
+-- Query 11: Optimized query 5 - filter and sort
+EXPLAIN
+SELECT Record_ID, Customer_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Product_Category = 'Phone'
+ORDER BY Order_Date DESC
+LIMIT 100;
+
+-- Query 12: Compare actual execution details (MySQL 8.0.18+)
+EXPLAIN ANALYZE
+SELECT Record_ID, Customer_ID, Order_Date, Order_Status
+FROM Sales_Analytics
+WHERE Region = 'North';
+
+EXPLAIN ANALYZE
+SELECT Record_ID, Customer_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Region = 'West'
+  AND Order_Status = 'Delivered'
+  AND Order_Date >= '2025-06-01';
+
+EXPLAIN ANALYZE
+SELECT Record_ID, Order_Date, Unit_Price
+FROM Sales_Analytics
+WHERE Order_Date >= '2025-01-01'
+  AND Order_Date < '2026-01-01';
