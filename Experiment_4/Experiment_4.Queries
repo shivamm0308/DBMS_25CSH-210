@@ -1,0 +1,112 @@
+--Queries
+--  QUERY 1 – VERIFY EMPLOYEE RECORDS 
+ 
+SELECT * FROM Employee; 
+
+-- QUERY 2 – SELECTION 
+ 
+SELECT * 
+FROM Employee 
+WHERE Salary > 80000; 
+
+-- QUERY 3 – SELECTION USING DEPARTMENT 
+ 
+SELECT * 
+FROM Employee 
+WHERE Dept_ID = 2; 
+ 
+-- QUERY 4 – PROJECTION 
+ 
+SELECT Emp_ID, Emp_Name, Salary 
+FROM Employee; 
+
+-- QUERY 5 – AGGREGATE FUNCTIONS 
+ 
+SELECT 
+    COUNT(*) AS Total_Employees, 
+    AVG(Salary) AS Average_Salary, 
+    MAX(Salary) AS Highest_Salary, 
+    MIN(Salary) AS Lowest_Salary 
+FROM Employee; 
+
+-- QUERY 6 – SUM FUNCTION 
+ 
+SELECT SUM(Salary) AS Total_Salary 
+FROM Employee; 
+
+-- QUERY 7 – GROUP BY 
+ 
+SELECT Dept_ID, COUNT(*) AS Employee_Count 
+FROM Employee 
+GROUP BY Dept_ID; 
+ 
+-- QUERY 8 – GROUP BY WITH AVG() 
+ 
+SELECT Dept_ID, AVG(Salary) AS Average_Salary 
+FROM Employee 
+GROUP BY Dept_ID; 
+
+-- QUERY 9 – GROUP BY WITH HAVING 
+ 
+SELECT Dept_ID, COUNT(*) AS Employee_Count 
+FROM Employee 
+GROUP BY Dept_ID 
+HAVING COUNT(*) > 5; 
+
+-- QUERY 10 – CASE EXPRESSION 
+SELECT 
+    Emp_Name, 
+    Salary, 
+    CASE 
+        WHEN Salary >= 90000 THEN 'High Salary' 
+        WHEN Salary >= 70000 THEN 'Medium Salary' 
+        ELSE 'Low Salary' 
+    END AS Salary_Category 
+FROM Employee; 
+ 
+-- QUERY 11  - ORDER BY ASCENDING
+
+SELECT Emp_ID, Emp_Name, Salary 
+FROM Employee 
+ORDER BY Salary ASC; 
+ 
+-- QUERY 12 – ORDER BY DESCENDING 
+SELECT Emp_ID, Emp_Name, Salary 
+FROM Employee 
+ORDER BY Salary DESC;  
+
+-- QUERY 13 – GROUP BY, HAVING AND ORDER BY 
+ 
+SELECT 
+    Dept_ID, 
+    COUNT(*) AS Employee_Count, 
+    AVG(Salary) AS Average_Salary 
+FROM Employee 
+GROUP BY Dept_ID 
+HAVING AVG(Salary) > 70000 
+ORDER BY Average_Salary DESC; 
+
+-- QUERY 14 – DEPARTMENT-WISE EMPLOYEE DETAILS 
+ 
+SELECT 
+    d.Dept_Name, 
+    COUNT(e.Emp_ID) AS Employee_Count, 
+    AVG(e.Salary) AS Average_Salary 
+FROM Department d 
+JOIN Employee e 
+ON d.Dept_ID = e.Dept_ID 
+GROUP BY d.Dept_ID, d.Dept_Name 
+ORDER BY Employee_Count DESC; 
+
+-- QUERY 15 – PROJECT-WISE EMPLOYEE COUNT 
+ 
+SELECT 
+    p.Project_Name, 
+    COUNT(e.Emp_ID) AS Employee_Count 
+FROM Project p 
+LEFT JOIN Employee e 
+ON p.Project_ID = e.Project_ID 
+GROUP BY p.Project_ID, p.Project_Name 
+ORDER BY Employee_Count DESC; 
+
+
