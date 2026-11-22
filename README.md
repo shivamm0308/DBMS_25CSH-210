@@ -12,7 +12,7 @@ All SQL is written for **MySQL 8.0+** (recursive CTEs, `CREATE OR REPLACE VIEW`,
 |---|---|
 | **Name** | Shivam Maurya |
 | **UID** | 25LBCS3216 |
-| **Section / Group** | _Section C |
+| **Section / Group** | Section C |
 | **Course** | Database Management Systems (25CSH-210) |
 
 ---
