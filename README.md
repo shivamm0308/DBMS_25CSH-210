@@ -1,4 +1,3 @@
-# DBMS_25CSH-210
 # DBMS Lab – 25CSH-210
 
 This repository contains my lab work for the **Database Management Systems (DBMS)** course (**25CSH-210**). It covers 10 experiments, from ER diagram design and schema creation to SQL querying, views, stored procedures, triggers, normalization, transactions, indexing and query optimization.
